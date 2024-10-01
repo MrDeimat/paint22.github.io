@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+            * {
+                padding: 0;
+                margin: 0;
+                overflow: hidden;
+
+                font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            }
+            body {
+                position: sticky;
+                width: 100vw;
+                height: 100vh;
+                background-color: #222222;
+                z-index: -2;
+            }
+            hr {
+                margin-left: 6px;
+                margin-right: 6px;
+            }
+            input[type=number] {
+                border: 1.5px rgba(0, 0, 0, 0.148) solid;
+                outline: none;
+            }
+            button {
+                cursor: pointer;
+                border: none;
+                padding: 4px;
+                padding-left: 8px;
+                padding-right: 8px;
+                outline: none;
+            }
+            button:hover {
+                filter: brightness(80%);
+            }
+            input[type="color"] {
+                background: none;
+                border: none;
+                width: 32px;
+            }
+            
+            .popup-button {
+                background-color: #ccc;
+            }
+            .horizontal-panel {
+                display: flex;
+            }
+            .vertical-panel {
+                display: block;
+            }
+            .dropdown:hover .dropdown-list {
+                display: grid;
+            }
+            .dropdown-button {
+                background: none;
+                color: #cccccc;
+                position: relative;
+                height: 32px;
+            }
+            .dropdown-list {
+                display: none;
+                position: absolute;
+                box-shadow: 2px 2px 6px 0.25px #00000055;
+            }
+            .dropdown-item {
+                width: 128px;
+                background-color: #ddd;
+                color: #222222;
+                text-align: start;
+            }
+            .popup {
+                display: none;
+                position: absolute;
+                background-color: #eee;
+                box-shadow: 0px 0px 12px 0px #00000055;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                padding: 10px;
+            }
+            .toolbox-button {
+                background: none;
+                color: #cccccc;
+            }
+            .toolbox-button svg {
+                width: 100%;
+            }
+
+            #titlebar {
+                background-color: #343434;
+                padding: 0;
+                align-items: center;
+                height: 32px;
+                justify-content: space-between;
+                box-shadow: 0 0 12px 0 #00000088;
+            }
+            #toolbox {
+                position: relative;
+                background-color: #343434;
+                padding: 0;
+                justify-content: center;
+                width: 32px;
+                height: 100%;
+                padding: 2px;
+                padding-top: 8px;
+                z-index: -1;
+                box-shadow: 0 0 12px 0 #00000088;
+            }
+            #canvas {
+                position: absolute;
+                width: 500px;
+                height: 500px;
+                box-shadow: 0 0 64px 12px #000000;
+                z-index: -1;
+                top: 25%;
+                left: 25%;
+                transform: translate(-25%, -25%);
+            }
+            #logo {
+                translate: 0px 2px;
+                height: 24px;
+            }
+            #brush-controls {
+                display: none;
+            }
+            #erase-controls {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="titlebar" class="horizontal-panel">
+            <div>
+                <ul class="horizontal-panel">
+                    <div class="dropdown">
+                        <button class="dropdown-button">File</button>
+                        <div class="dropdown-list">
+                            <button id="new-file" class="dropdown-item">New</button>
+                            <button id="open-file" class="dropdown-item">Open</button>
+                            <button id="save-file" class="dropdown-item">Save</button>
+                        </div>
+                    </div>
+                </ul>
+            </div>
+            <div class="horizontal-panel">
+                <div id="brush-controls" class="horizontal-panel" style="height: 32px;">
+                    <input type="color" id="color-selector" title="Color" style="height: 100%;">
+                    <input type="number" id="stroke-width-selector" title="Width" style="vertical-align: middle; width: 40px; margin-top: -24px;" value="5" max="999" min="1">
+                </div>
+                <div id="erase-controls" class="horizontal-panel" style="height: 32px;">
+                    <input type="number" id="erase-stroke-width-selector" title="Width" style="vertical-align: middle; width: 40px; margin-top: 8px;" value="5" max="999" min="1">
+                </div>
+                <div id="fill-controls" class="horizontal-panel" style="height: 32px; display: none;">
+                    <input type="color" id="fill-color-selector" title="Color" style="height: 100%;">
+                </div>
+            </div>
+            <div>
+                <img src="logo.png" alt="Logo" id="logo">
+            </div>
+        </div>
+        <div id="new-file-popup" class="popup">
+            <h2>New File</h2>
+            <br>
+            <p>Width:</p>
+            <input type="number" value="512" id="new-file-width">
+            <p>Height:</p>
+            <input type="number" value="512" id="new-file-height">
+            <br><br>
+            <button id="new-file-create-button" class="popup-button">Create</button>
+        </div>
+        <canvas width="512" height="512" id="canvas"></canvas>
+        <div id="toolbox">
+            <button id="take-brush" class="toolbox-button" title="Brush">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-brush-fill" viewBox="0 0 16 16">
+                    <path d="M15.825.12a.5.5 0 0 1 .132.584c-1.53 3.43-4.743 8.17-7.095 10.64a6.1 6.1 0 0 1-2.373 1.534c-.018.227-.06.538-.16.868-.201.659-.667 1.479-1.708 1.74a8.1 8.1 0 0 1-3.078.132 4 4 0 0 1-.562-.135 1.4 1.4 0 0 1-.466-.247.7.7 0 0 1-.204-.288.62.62 0 0 1 .004-.443c.095-.245.316-.38.461-.452.394-.197.625-.453.867-.826.095-.144.184-.297.287-.472l.117-.198c.151-.255.326-.54.546-.848.528-.739 1.201-.925 1.746-.896q.19.012.348.048c.062-.172.142-.38.238-.608.261-.619.658-1.419 1.187-2.069 2.176-2.67 6.18-6.206 9.117-8.104a.5.5 0 0 1 .596.04"/>
+                </svg>
+            </button>
+            <button id="take-erase" class="toolbox-button" title="Erase">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eraser-fill" viewBox="0 0 16 16">
+                    <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828zm.66 11.34L3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293z"/>
+                </svg>
+            </button>
+            <button id="take-fill" class="toolbox-button" title="Fill">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paint-bucket" viewBox="0 0 16 16">
+                    <path d="M6.192 2.78c-.458-.677-.927-1.248-1.35-1.643a3 3 0 0 0-.71-.515c-.217-.104-.56-.205-.882-.02-.367.213-.427.63-.43.896-.003.304.064.664.173 1.044.196.687.556 1.528 1.035 2.402L.752 8.22c-.277.277-.269.656-.218.918.055.283.187.593.36.903.348.627.92 1.361 1.626 2.068.707.707 1.441 1.278 2.068 1.626.31.173.62.305.903.36.262.05.64.059.918-.218l5.615-5.615c.118.257.092.512.05.939-.03.292-.068.665-.073 1.176v.123h.003a1 1 0 0 0 1.993 0H14v-.057a1 1 0 0 0-.004-.117c-.055-1.25-.7-2.738-1.86-3.494a4 4 0 0 0-.211-.434c-.349-.626-.92-1.36-1.627-2.067S8.857 3.052 8.23 2.704c-.31-.172-.62-.304-.903-.36-.262-.05-.64-.058-.918.219zM4.16 1.867c.381.356.844.922 1.311 1.632l-.704.705c-.382-.727-.66-1.402-.813-1.938a3.3 3.3 0 0 1-.131-.673q.137.09.337.274m.394 3.965c.54.852 1.107 1.567 1.607 2.033a.5.5 0 1 0 .682-.732c-.453-.422-1.017-1.136-1.564-2.027l1.088-1.088q.081.181.183.365c.349.627.92 1.361 1.627 2.068.706.707 1.44 1.278 2.068 1.626q.183.103.365.183l-4.861 4.862-.068-.01c-.137-.027-.342-.104-.608-.252-.524-.292-1.186-.8-1.846-1.46s-1.168-1.32-1.46-1.846c-.147-.265-.225-.47-.251-.607l-.01-.068zm2.87-1.935a2.4 2.4 0 0 1-.241-.561c.135.033.324.11.562.241.524.292 1.186.8 1.846 1.46.45.45.83.901 1.118 1.31a3.5 3.5 0 0 0-1.066.091 11 11 0 0 1-.76-.694c-.66-.66-1.167-1.322-1.458-1.847z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <script src="engine.js"></script>
+        <script src="paint.js"></script>
+    </body>
+</html>
